@@ -10,3 +10,16 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 2rem;
 }
+
+.card {
+  position: relative;
+}
+
+.card .front {
+  transform: rotateY(90deg);
+  position: absolute;
+}
+
+.flipped .front {
+  transform: rotateY(0);
+}

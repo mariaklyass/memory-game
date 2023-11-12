@@ -1,5 +1,6 @@
 import "./app.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Card from "./components/card";
 
 const img1 = "/assets/img1.jpg";
 const img2 = "/assets/img2.jpg";
@@ -8,7 +9,12 @@ const img4 = "/assets/img4.jpg";
 
 const cover = "/assets/cover.jpg";
 
-const allCards = [{ src: img1 }, { src: img2 }, { src: img3 }, { src: img4 }];
+const allCards = [
+  { src: img1, matched: false },
+  { src: img2, matched: false },
+  { src: img3, matched: false },
+  { src: img4, matched: false },
+];
 
 function App() {
   const [curCards, setCurCards] = useState([]);
@@ -28,25 +34,60 @@ function App() {
     //start with 0 moves made
     setMoves(0);
   };
-  //
-  const handleClick = (card) => {};
 
+  //logic for handling the click on a card
+  const [firstClick, setFirstClick] = useState(null);
+  const [secondClick, setSecondClick] = useState(null);
+  const handleCompareCards = (card) => {
+    firstClick ? setSecondClick(card) : setFirstClick(card);
+  };
+
+  //logic for comparing cards; should only work when state is ALREADY updated, re-evaluate when state changes => hense useEffect() and ONLY if both cards are clicked
+  useEffect(() => {
+    if (firstClick && secondClick) {
+      if (firstClick.src === secondClick.src) {
+        //if they match, keep them flipped; we need to update our current set of cards, pick the selected cards and make their "matched: true" and return a new array
+        setCurCards((prev) => {
+          return prev.map((card) => {
+            if (card.src === firstClick.src) {
+              return { ...card, matched: true };
+            } else {
+              return card;
+            }
+          });
+        });
+        reset();
+      } else {
+        //if they don't match, just flip over
+        setTimeout(() => reset(), 1000);
+      }
+    }
+  }, [firstClick, secondClick]);
+
+  console.log(curCards);
+
+  //reset to choose cards further
+  const reset = () => {
+    setFirstClick(null);
+    setSecondClick(null);
+    setMoves((prev) => prev + 1);
+  };
+
+  //render
   return (
     <div>
       <h1>Memory Game</h1>
       <div className="cards-container">
         {curCards.map((card) => (
-          <div className="" key={card.id}>
-            <div>
-              <img className="" src={card.src} alt="card front"></img>
-            </div>
-            <img
-              className=""
-              src={cover}
-              onClick={handleClick}
-              alt="card cover"
-            ></img>
-          </div>
+          <Card
+            key={card.id}
+            card={card}
+            cover={cover}
+            handleCompare={handleCompareCards}
+            flipped={
+              card === firstClick || card === secondClick || card.matched
+            }
+          />
         ))}
       </div>
       Moves made: {moves}
